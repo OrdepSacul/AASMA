@@ -13,11 +13,14 @@ public class Reactive : MonoBehaviour
     private Vector3 moveToward, currentPosition, moveDirection, target;
     private Status currentStatus;
 
+    GameObject bomb;
+    bool bombPicked;
+
     // Use this for initialization
     void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-
+        bomb = GameObject.FindGameObjectWithTag("Bomb");
         var spawner = transform.name.Contains("blue") ? GameObject.Find("BlueAgentSpawner").GetComponent<Spawner>() : GameObject.Find("RedAgentSpawner").GetComponent<Spawner>();
 
         //setup agent
@@ -49,6 +52,10 @@ public class Reactive : MonoBehaviour
         else if (other.collider.tag == "Bomb")
         {
             //pick it up
+            //other.gameObject.transform.parent = this.transform;
+            //other.gameObject.transform.position = transform.position;// -transform.forward;
+            //other.transform.GetComponent<NavMeshAgent>().SetDestination(transform.position);
+            //other.transform.Translate(transform.position.x, 1, transform.position.z, Space.World); //needs rigidbody?
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -147,6 +154,15 @@ public class Reactive : MonoBehaviour
             //transform.position = Vector3.MoveTowards(currentPosition, moveToward, moveSpeed / 100.0f  );
 
             agent.SetDestination(moveToward);
+
+            if ((bomb.transform.position - transform.position).magnitude < 0.4)
+            {
+                bomb.gameObject.transform.parent = this.gameObject.transform;
+                bomb.gameObject.transform.position = this.gameObject.transform.position;
+                if(!bombPicked)
+                    bomb.transform.Translate(0,1,-0.2f,Space.Self);
+
+            }
                         
         }
 
