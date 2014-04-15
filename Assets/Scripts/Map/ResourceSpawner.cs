@@ -90,8 +90,8 @@ public class ResourceSpawner : MonoBehaviour {
 
             Vector3 randomPos = new Vector3(randX, 0.0f, randZ);
 
-            NavMesh.SamplePosition(randomPos, out hit, 1, 1);
-            if (hit.position.y < 0.2) break;
+            NavMesh.SamplePosition(randomPos, out hit, 0.1f, 1);
+            if (hit.position.y < 0.1) break;
         }
 
         //Debug.Log(transform.name + "  " + hit.position);

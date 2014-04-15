@@ -13,12 +13,14 @@ public class BombSpawner : MonoBehaviour
     private GameObject bombGameObject;
     private int allTimeCoins;
     private Object bombInstance;
-    public float timer = 300; // set duration time in seconds in the Inspector
+    public float timer; // set duration time in seconds in the Inspector
+    private float initTimer;
 
     // Use this for initialization
     void Awake()
     {
-        
+        initTimer = timer;
+        Debug.Log(initTimer);
         SpawnBomb();
         bombGameObject = GameObject.FindGameObjectWithTag("Bomb");
     }
@@ -26,13 +28,16 @@ public class BombSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-        if(bombGameObject.transform.position != defaultPosition)
-            timer -= Time.deltaTime; // I need timer which from a particular time goes to zero
- 
-        if (timer > 0)
+
+        if (bombGameObject.transform.position != defaultPosition && bombGameObject.transform.parent == null)
         {
-            guiText.text = timer.ToString("F0");
+            initTimer -= Time.deltaTime; // I need timer which from a particular time goes to zero
+            guiText.text = initTimer.ToString("F0");
+        } else initTimer = timer;
+ 
+        if (initTimer > 0)
+        {
+            guiText.text = initTimer.ToString("F0");
         } 
         else // timer is <= 0
         {
@@ -64,6 +69,7 @@ public class BombSpawner : MonoBehaviour
     }
 
     void ResetBomb() {
+        initTimer = timer;
         bombGameObject.transform.position = defaultPosition;
         bombGameObject.transform.parent = null;    
     }

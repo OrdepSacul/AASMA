@@ -10,6 +10,9 @@ public class Reactive : MonoBehaviour
     private enum Status {Wander, PickResource, PickBomb, Fight};
 
     private GameObject selectedTarget;
+
+    private ArrayList viewableTargets;
+
     private Vector3 moveToward, currentPosition, moveDirection, target;
     private Status currentStatus;
 
@@ -17,7 +20,7 @@ public class Reactive : MonoBehaviour
     bool bombPicked;
 
     // Use this for initialization
-    void Awake()
+    void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         bomb = GameObject.FindGameObjectWithTag("Bomb");
@@ -48,6 +51,7 @@ public class Reactive : MonoBehaviour
         {
             Destroy(other.gameObject);
             GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().RegisterPickup(this.tag);
+            currentStatus = Status.Wander;
         }
         else if (other.collider.tag == "Bomb")
         {
@@ -80,6 +84,8 @@ public class Reactive : MonoBehaviour
         if (other.collider.tag == "Coin")
         {
             Debug.Log("Saw a coin!!");
+            selectedTarget = other.gameObject;
+            currentStatus = Status.PickResource;
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -107,7 +113,36 @@ public class Reactive : MonoBehaviour
     //O QUE O AGENTE DEIXA DE VER
     void OnTriggerExit(Collider other)
     {
-        Debug.Log("exited");
+        //check tag and act accordingly
+        if (other.collider.tag == "Coin")
+        {
+            //if (selectedTarget.name == other.name)
+            //{
+            //    Debug.Log("Bye coin!!");
+            //    selectedTarget = null;
+            //    currentStatus = Status.Wander;
+            //}
+        }
+        else if (other.collider.tag == "Blue" && this.tag == "Blue")
+        {
+            //Debug.Log("BROOOO!!");
+        }
+        else if (other.collider.tag == "Red" && this.tag == "Blue")
+        {
+            //Debug.Log("ENEMYY!!!");
+        }
+        else if (other.collider.tag == "CaptureA")
+        {
+            //Debug.Log("Capture point A!!!");
+        }
+        else if (other.collider.tag == "CaptureB")
+        {
+            //Debug.Log("Capture point B!!!");
+        }
+        else if (other.collider.tag == "Bomb")
+        {
+            //Debug.Log("Bomb!!!");
+        }
     }
 
 
@@ -137,35 +172,52 @@ public class Reactive : MonoBehaviour
         //mantem actualizada a posicao actual
         currentPosition = transform.position;
 
-        if (currentStatus == Status.Wander)
+        switch (currentStatus)
         {
+            case Status.Wander:
+                {
 
-            var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
-            //Debug.Log(moveToward);
-            //Debug.Log(distance);
+                    var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
 
-            if (distance < 0.1f) {
+                    if (distance < 0.1f)
+                        moveToward = GetRandomDestination();
 
-                moveToward = GetRandomDestination();
-   
+                    agent.SetDestination(moveToward);
 
-            }
-            //transform.position = Vector3.Lerp(currentPosition, moveToward, Time.time / 100);
-            //transform.position = Vector3.MoveTowards(currentPosition, moveToward, moveSpeed / 100.0f  );
+                    //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh
+                    if ((bomb.transform.position - transform.position).magnitude < 0.4)
+                    {
+                        bomb.gameObject.transform.parent = this.gameObject.transform;
+                        bomb.gameObject.transform.position = this.gameObject.transform.position;
+                        if (!bombPicked)
+                            bomb.transform.Translate(0, 1, -0.2f, Space.Self);
 
-            agent.SetDestination(moveToward);
+                    }
+                }
+                break;
 
-            if ((bomb.transform.position - transform.position).magnitude < 0.4)
-            {
-                bomb.gameObject.transform.parent = this.gameObject.transform;
-                bomb.gameObject.transform.position = this.gameObject.transform.position;
-                if(!bombPicked)
-                    bomb.transform.Translate(0,1,-0.2f,Space.Self);
+            case Status.PickResource:
+                {
+                    if (selectedTarget != null)
+                        agent.SetDestination(selectedTarget.transform.position);
+                    else currentStatus = Status.Wander;
+                }
 
-            }
-                        
+                break;
+
+            case Status.PickBomb:
+                { 
+                
+                }
+                break;
+
+            case Status.Fight:
+                {
+
+                }
+                break;
+
         }
-
         
 
 
