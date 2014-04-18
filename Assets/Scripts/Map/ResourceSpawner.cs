@@ -41,20 +41,8 @@ public class ResourceSpawner : MonoBehaviour {
 
     void SpawnResource()
     {
-        ////get map image scale
-        //var MapSize = GameObject.Find("Map").transform.localScale;
-
-        ////get random coordinates for resouce respawn
-        ////TODO: add more restrains (outside of river, more distant from spawn, etc..)
-        //randX = (Random.value * 2.0f - 1) * (MapSize.x / 2 - 1);
-        //randZ = (Random.value * 2.0f - 1) * (MapSize.y / 2 - 1);
-
-        this.GetComponent<NavMeshAgent>();
-
-        //instantiate resource gameobject
-        //var newCoin = Instantiate(agent, new Vector3(randX, 0.08f, randZ), Quaternion.identity);
+        
         var newCoin = Instantiate(agent, GetRandomDestination2(), Quaternion.identity);
-
         newCoin.name = "coin" + allTimeCoins; //give it a name so we can identify it in an array if needed
         currentResources++;
         allTimeCoins++;
@@ -65,7 +53,7 @@ public class ResourceSpawner : MonoBehaviour {
 
     public void RegisterPickup(string team)
     {
-        Debug.Log("pickup!");
+        //Debug.Log("pickup!");
         currentResources--;
         if (team == "Blue")
             blueScore += resourceValue;
@@ -90,8 +78,8 @@ public class ResourceSpawner : MonoBehaviour {
 
             Vector3 randomPos = new Vector3(randX, 0.0f, randZ);
 
-            NavMesh.SamplePosition(randomPos, out hit, 1, 1);
-            if (hit.position.y < 0.2) break;
+            NavMesh.SamplePosition(randomPos, out hit, 0.1f, 1);
+            if (hit.position.y < 0.1) break;
         }
 
         //Debug.Log(transform.name + "  " + hit.position);

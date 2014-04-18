@@ -50,6 +50,8 @@
      <Compile Include="Assets\Scripts\Agents\Spawner.cs" />
      <Compile Include="Assets\Scripts\Agents\Wander.cs" />
      <Compile Include="Assets\Scripts\Map\BombSpawner.cs" />
+     <Compile Include="Assets\Scripts\Map\CapturePointController.cs" />
+     <Compile Include="Assets\Scripts\Map\CaptureTrigger.cs" />
      <Compile Include="Assets\Scripts\Map\ResourceSpawner.cs" />
      <Compile Include="Assets\navagent.cs" />
   </ItemGroup>

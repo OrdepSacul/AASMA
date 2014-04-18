@@ -1,24 +1,31 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class Reactive : MonoBehaviour
 {
 
-    private float wanderRadius;
+    private float wanderRadius, viewDistance;
     private NavMeshAgent agent;
     //estado em que o agente se encontra
-    private enum Status {Wander, PickResource, PickBomb, Fight};
+    private enum Status {Wander, PickResource, PickBomb, Fight, CapturePoint};
 
     private GameObject selectedTarget;
-    private Vector3 moveToward, currentPosition, moveDirection, target;
+
+    private Hashtable viewableTargets;
+
+    private Vector3 moveToward, currentPosition, moveDirection, target, redBaseLocation, blueBaseLocation;
     private Status currentStatus;
 
     GameObject bomb;
     bool bombPicked;
 
     // Use this for initialization
-    void Awake()
+    void Start()
     {
+        redBaseLocation = GameObject.Find("RedAgentSpawner").transform.position;
+        blueBaseLocation = GameObject.Find("BlueAgentSpawner").transform.position;
+        viewableTargets = new Hashtable();
         agent = GetComponent<NavMeshAgent>();
         bomb = GameObject.FindGameObjectWithTag("Bomb");
         var spawner = transform.name.Contains("blue") ? GameObject.Find("BlueAgentSpawner").GetComponent<Spawner>() : GameObject.Find("RedAgentSpawner").GetComponent<Spawner>();
@@ -27,7 +34,7 @@ public class Reactive : MonoBehaviour
         agent.speed = spawner.moveSpeed;
         agent.acceleration = spawner.agentAcceleration;
         this.wanderRadius = spawner.wanderRadius;
-        this.GetComponent<SphereCollider>().radius = spawner.agentViewDistance; //2.27f
+        this.GetComponent<SphereCollider>().radius = viewDistance = spawner.agentViewDistance; //2.27f
         agent.angularSpeed = spawner.agentAngularSpeed;
         currentPosition = transform.position;
 
@@ -46,8 +53,12 @@ public class Reactive : MonoBehaviour
         //Debug.Log("Collision!");
         if (other.gameObject.tag == "Coin")
         {
+            viewableTargets.Remove(other.gameObject.name);
             Destroy(other.gameObject);
             GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().RegisterPickup(this.tag);
+            SetNearestTarget();
+            //currentStatus = Status.Wander;
+            //Debug.Log(viewableTargets);
         }
         else if (other.collider.tag == "Bomb")
         {
@@ -79,7 +90,12 @@ public class Reactive : MonoBehaviour
         //check tag and act accordingly
         if (other.collider.tag == "Coin")
         {
-            Debug.Log("Saw a coin!!");
+            //Debug.Log("Saw a coin!!");
+            //selectedTarget = other.gameObject;
+            //currentStatus = Status.PickResource;
+            if (!viewableTargets.Contains(other.name))
+                viewableTargets.Add(other.name, other.gameObject);
+            SetNearestTarget();
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -97,18 +113,42 @@ public class Reactive : MonoBehaviour
         {
             //Debug.Log("Capture point B!!!");
         }
-        else if (other.collider.tag == "Bomb")
-        {
-            //Debug.Log("Bomb!!!");
-        }
+
     }
 
 
     //O QUE O AGENTE DEIXA DE VER
     void OnTriggerExit(Collider other)
     {
-        Debug.Log("exited");
+        //check tag and act accordingly
+        if (other.collider.tag == "Coin")
+        {
+            //if (selectedTarget.name == other.name)
+            //{
+            //    Debug.Log("Bye coin!!");
+            //    selectedTarget = null;
+            //    currentStatus = Status.Wander;
+            //}
+        }
+        else if (other.collider.tag == "Blue" && this.tag == "Blue")
+        {
+            //Debug.Log("BROOOO!!");
+        }
+        else if (other.collider.tag == "Red" && this.tag == "Blue")
+        {
+            //Debug.Log("ENEMYY!!!");
+        }
+        else if (other.collider.tag == "CaptureA")
+        {
+            //Debug.Log("Capture point A!!!");
+        }
+        else if (other.collider.tag == "CaptureB")
+        {
+            //Debug.Log("Capture point B!!!");
+        }
+
     }
+
 
 
     Vector3 GetRandomDestination() {
@@ -117,7 +157,7 @@ public class Reactive : MonoBehaviour
 
         while (true)
         {
-            Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
+            Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * wanderRadius;
 
             randomDirection += transform.position;
 
@@ -130,6 +170,64 @@ public class Reactive : MonoBehaviour
 
     }
 
+    bool CarriesBomb(GameObject agent) {
+        return agent.transform.childCount > 0 ? true : false;    
+    }
+
+    void PickBomb() {
+
+        bomb.gameObject.transform.parent = this.gameObject.transform;
+        bomb.gameObject.transform.position = this.gameObject.transform.position;
+        if (!bombPicked)
+            bomb.transform.Translate(0, 1, -0.2f, Space.Self);
+
+    }
+
+    void PlaceBomb() {
+        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().BombScore(this.tag); 
+        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().ResetBomb();        
+    }
+    
+    void SetNearestTarget() {
+        var min = 99999.0f;
+        GameObject nearest = null;
+
+        var e = viewableTargets.GetEnumerator();
+        //try
+        //{
+            while (e.MoveNext())
+            {
+                var key = e.Key as string;
+                var value = e.Value as GameObject;
+                if (GameObject.Find(key) == null)
+                {
+                    viewableTargets.Remove(key);
+                    break;
+                }
+                    
+                //Debug.Log(value.name);
+                var temp = (value.transform.position - transform.position).magnitude;
+                if (temp < min)
+                {
+                    min = temp;
+                    nearest = value;
+                }
+
+            }
+            //Debug.Log(nearest.gameObject);
+            if (nearest != null)
+                selectedTarget = nearest.gameObject;
+            else
+                selectedTarget = null;
+        //}
+        //catch (Exception ex)
+        //{
+        //    Debug.Log("BADJORAS!!");
+        //    viewableTargets.Remove(selectedTarget.name);
+        //    selectedTarget = null;
+        //}
+    }
+
 
     // Update is called once per frame
     void Update()
@@ -137,35 +235,86 @@ public class Reactive : MonoBehaviour
         //mantem actualizada a posicao actual
         currentPosition = transform.position;
 
-        if (currentStatus == Status.Wander)
+        //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh :/
+        //controlar a prioridade da bomba em relacao a resources aqui?
+        if (bomb.transform.parent == null)
         {
-
-            var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
-            //Debug.Log(moveToward);
-            //Debug.Log(distance);
-
-            if (distance < 0.1f) {
-
-                moveToward = GetRandomDestination();
-   
-
-            }
-            //transform.position = Vector3.Lerp(currentPosition, moveToward, Time.time / 100);
-            //transform.position = Vector3.MoveTowards(currentPosition, moveToward, moveSpeed / 100.0f  );
-
-            agent.SetDestination(moveToward);
-
-            if ((bomb.transform.position - transform.position).magnitude < 0.4)
-            {
-                bomb.gameObject.transform.parent = this.gameObject.transform;
-                bomb.gameObject.transform.position = this.gameObject.transform.position;
-                if(!bombPicked)
-                    bomb.transform.Translate(0,1,-0.2f,Space.Self);
-
-            }
-                        
+            if ((bomb.transform.position - transform.position).magnitude <= viewDistance)
+                currentStatus = Status.PickBomb;
+        }
+        else if (transform.childCount > 0) {
+            //Debug.Log("Distance to bases: " + (redBaseLocation - this.transform.position).magnitude + " - " + (blueBaseLocation - this.transform.position).magnitude);
+            if (
+                ((redBaseLocation - this.transform.position).magnitude < 1 && this.tag == "Blue") ||
+                ((blueBaseLocation - this.transform.position).magnitude < 1 && this.tag == "Red")
+               )
+                PlaceBomb();
         }
 
+
+        switch (currentStatus)
+        {
+            case Status.Wander:
+                {
+
+                    if (viewableTargets.Count > 0)
+                        currentStatus = Status.PickResource;
+
+                    var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
+
+                    if (distance < 0.1f)
+                        moveToward = GetRandomDestination();
+
+                    agent.SetDestination(moveToward);
+
+                }
+                break;
+
+            case Status.PickResource:
+                {
+                    if (viewableTargets.Count == 0 || selectedTarget == null)
+                        currentStatus = Status.Wander;
+
+                    //such.. ugly.. code..
+                    try
+                    {
+                        agent.SetDestination(selectedTarget.transform.position);
+                    }catch(Exception e)
+                    {
+                        //Debug.Log(e.Message);
+                        SetNearestTarget();
+                    }
+                        
+                }
+
+                break;
+
+            case Status.PickBomb:
+                {
+                    if ((bomb.transform.position - transform.position).magnitude < 0.4)
+                    {
+                        PickBomb();
+                        currentStatus = Status.Wander;
+                    }
+                    agent.SetDestination(bomb.transform.position);
+
+                }
+                break;
+
+            case Status.Fight:
+                {
+
+                }
+                break;
+
+            case Status.CapturePoint:
+                {
+                    
+                    
+                }
+                break;
+
+        }
         
 
 

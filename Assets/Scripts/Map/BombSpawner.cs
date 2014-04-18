@@ -6,19 +6,19 @@ public class BombSpawner : MonoBehaviour
 
     public Transform bomb;
     public int resourceValue = 30;
-
+    private int redScore, blueScore;
     private Vector3 defaultPosition = new Vector3(0.0f,0.1f,0.0f);
-    private int currentResources;
-    private int blueScore, redScore;
     private GameObject bombGameObject;
-    private int allTimeCoins;
     private Object bombInstance;
-    public float timer = 300; // set duration time in seconds in the Inspector
+    public float timer; // set duration time in seconds in the Inspector
+    private float initTimer;
 
     // Use this for initialization
-    void Awake()
+    void Awake() //precisa de ser awake para os agentes encontrarem a bomba no inicio do jogo
     {
-        
+        redScore = blueScore = 0;
+        initTimer = timer;
+        Debug.Log(initTimer);
         SpawnBomb();
         bombGameObject = GameObject.FindGameObjectWithTag("Bomb");
     }
@@ -26,13 +26,16 @@ public class BombSpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-        if(bombGameObject.transform.position != defaultPosition)
-            timer -= Time.deltaTime; // I need timer which from a particular time goes to zero
- 
-        if (timer > 0)
+
+        if (bombGameObject.transform.position != defaultPosition && bombGameObject.transform.parent == null)
         {
-            guiText.text = timer.ToString("F0");
+            initTimer -= Time.deltaTime; // I need timer which from a particular time goes to zero
+            guiText.text = initTimer.ToString("F0");
+        } else initTimer = timer;
+ 
+        if (initTimer > 0)
+        {
+            guiText.text = initTimer.ToString("F0");
         } 
         else // timer is <= 0
         {
@@ -58,14 +61,31 @@ public class BombSpawner : MonoBehaviour
     }
 
 
-    void BombDropped(Transform carrier) {
+    public void BombDropped(Transform carrier) {
         bombGameObject.transform.position = carrier.position;
         bombGameObject.transform.parent = null;    
     }
 
-    void ResetBomb() {
+    public void BombScore(string team) {
+        if (team == "Red")
+            redScore++;
+        else blueScore++;
+        Debug.Log("BombScore!!");
+    }
+
+    public void ResetBomb() {
+        initTimer = timer;
         bombGameObject.transform.position = defaultPosition;
         bombGameObject.transform.parent = null;    
     }
+
+
+    void OnGUI() {
+
+        GUI.Button(new Rect(0, 30, 150, 100), "Bombs Detonated:\n Blue: "+blueScore+"\n Red: "+redScore);
+        //GUILayout.Button("Red Bomb Score: " + redScore + " - Blue Bomb Score: " + blueScore, new GUILayoutOption());
+                    
+    }
+
 
 }
