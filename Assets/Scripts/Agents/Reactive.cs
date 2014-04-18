@@ -12,9 +12,15 @@ public class Reactive : MonoBehaviour
 
     private GameObject selectedTarget;
 
+<<<<<<< HEAD
     private Hashtable viewableTargets;
 
     private Vector3 moveToward, currentPosition, moveDirection, target, redBaseLocation, blueBaseLocation;
+=======
+    private ArrayList viewableTargets;
+
+    private Vector3 moveToward, currentPosition, moveDirection, target;
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
     private Status currentStatus;
 
     GameObject bomb;
@@ -56,9 +62,13 @@ public class Reactive : MonoBehaviour
             viewableTargets.Remove(other.gameObject.name);
             Destroy(other.gameObject);
             GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().RegisterPickup(this.tag);
+<<<<<<< HEAD
             SetNearestTarget();
             //currentStatus = Status.Wander;
             //Debug.Log(viewableTargets);
+=======
+            currentStatus = Status.Wander;
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         }
         else if (other.collider.tag == "Bomb")
         {
@@ -90,12 +100,18 @@ public class Reactive : MonoBehaviour
         //check tag and act accordingly
         if (other.collider.tag == "Coin")
         {
+<<<<<<< HEAD
             //Debug.Log("Saw a coin!!");
             //selectedTarget = other.gameObject;
             //currentStatus = Status.PickResource;
             if (!viewableTargets.Contains(other.name))
                 viewableTargets.Add(other.name, other.gameObject);
             SetNearestTarget();
+=======
+            Debug.Log("Saw a coin!!");
+            selectedTarget = other.gameObject;
+            currentStatus = Status.PickResource;
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -146,7 +162,14 @@ public class Reactive : MonoBehaviour
         {
             //Debug.Log("Capture point B!!!");
         }
+<<<<<<< HEAD
 
+=======
+        else if (other.collider.tag == "Bomb")
+        {
+            //Debug.Log("Bomb!!!");
+        }
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
     }
 
 
@@ -235,6 +258,7 @@ public class Reactive : MonoBehaviour
         //mantem actualizada a posicao actual
         currentPosition = transform.position;
 
+<<<<<<< HEAD
         //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh :/
         //controlar a prioridade da bomba em relacao a resources aqui?
         if (bomb.transform.parent == null)
@@ -252,11 +276,14 @@ public class Reactive : MonoBehaviour
         }
 
 
+=======
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         switch (currentStatus)
         {
             case Status.Wander:
                 {
 
+<<<<<<< HEAD
                     if (viewableTargets.Count > 0)
                         currentStatus = Status.PickResource;
 
@@ -267,11 +294,30 @@ public class Reactive : MonoBehaviour
 
                     agent.SetDestination(moveToward);
 
+=======
+                    var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
+
+                    if (distance < 0.1f)
+                        moveToward = GetRandomDestination();
+
+                    agent.SetDestination(moveToward);
+
+                    //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh
+                    if ((bomb.transform.position - transform.position).magnitude < 0.4)
+                    {
+                        bomb.gameObject.transform.parent = this.gameObject.transform;
+                        bomb.gameObject.transform.position = this.gameObject.transform.position;
+                        if (!bombPicked)
+                            bomb.transform.Translate(0, 1, -0.2f, Space.Self);
+
+                    }
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
                 }
                 break;
 
             case Status.PickResource:
                 {
+<<<<<<< HEAD
                     if (viewableTargets.Count == 0 || selectedTarget == null)
                         currentStatus = Status.Wander;
 
@@ -301,12 +347,28 @@ public class Reactive : MonoBehaviour
                 }
                 break;
 
+=======
+                    if (selectedTarget != null)
+                        agent.SetDestination(selectedTarget.transform.position);
+                    else currentStatus = Status.Wander;
+                }
+
+                break;
+
+            case Status.PickBomb:
+                { 
+                
+                }
+                break;
+
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
             case Status.Fight:
                 {
 
                 }
                 break;
 
+<<<<<<< HEAD
             case Status.CapturePoint:
                 {
                     
@@ -314,6 +376,8 @@ public class Reactive : MonoBehaviour
                 }
                 break;
 
+=======
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         }
         
 

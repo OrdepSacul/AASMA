@@ -16,7 +16,10 @@ public class BombSpawner : MonoBehaviour
     // Use this for initialization
     void Awake() //precisa de ser awake para os agentes encontrarem a bomba no inicio do jogo
     {
+<<<<<<< HEAD
         redScore = blueScore = 0;
+=======
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         initTimer = timer;
         Debug.Log(initTimer);
         SpawnBomb();
@@ -66,6 +69,7 @@ public class BombSpawner : MonoBehaviour
         bombGameObject.transform.parent = null;    
     }
 
+<<<<<<< HEAD
     public void BombScore(string team) {
         if (team == "Red")
             redScore++;
@@ -74,6 +78,9 @@ public class BombSpawner : MonoBehaviour
     }
 
     public void ResetBomb() {
+=======
+    void ResetBomb() {
+>>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         initTimer = timer;
         bombGameObject.transform.position = defaultPosition;
         bombGameObject.transform.parent = null;    
