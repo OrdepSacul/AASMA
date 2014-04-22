@@ -7,30 +7,33 @@ public class Reactive : MonoBehaviour
 
     private float wanderRadius, viewDistance;
     private NavMeshAgent agent;
+    private const float captureSight = 1.0f;
+
     //estado em que o agente se encontra
-    private enum Status {Wander, PickResource, PickBomb, Fight, CapturePoint};
+    private enum Status { Wander, PickResource, PickBomb, Fight, CapturePoint };
 
-    private GameObject selectedTarget;
+    private GameObject selectedTarget, capturePointA, capturePointB;
 
-<<<<<<< HEAD
     private Hashtable viewableTargets;
 
-    private Vector3 moveToward, currentPosition, moveDirection, target, redBaseLocation, blueBaseLocation;
-=======
-    private ArrayList viewableTargets;
-
-    private Vector3 moveToward, currentPosition, moveDirection, target;
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
+    private Vector3 moveToward, currentPosition, moveDirection, target, redBaseLocation, blueBaseLocation, capturePointALocation, capturePointBLocation;
     private Status currentStatus;
 
     GameObject bomb;
-    bool bombPicked;
+    bool bombPicked, inCaptureRangeA, inCaptureRangeB;
 
     // Use this for initialization
     void Start()
     {
         redBaseLocation = GameObject.Find("RedAgentSpawner").transform.position;
         blueBaseLocation = GameObject.Find("BlueAgentSpawner").transform.position;
+
+        capturePointA = GameObject.Find("CaptureA");
+        capturePointB = GameObject.Find("CaptureB");
+
+        capturePointALocation = capturePointA.transform.position;
+        capturePointBLocation = capturePointB.transform.position;
+
         viewableTargets = new Hashtable();
         agent = GetComponent<NavMeshAgent>();
         bomb = GameObject.FindGameObjectWithTag("Bomb");
@@ -62,21 +65,9 @@ public class Reactive : MonoBehaviour
             viewableTargets.Remove(other.gameObject.name);
             Destroy(other.gameObject);
             GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().RegisterPickup(this.tag);
-<<<<<<< HEAD
             SetNearestTarget();
             //currentStatus = Status.Wander;
             //Debug.Log(viewableTargets);
-=======
-            currentStatus = Status.Wander;
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
-        }
-        else if (other.collider.tag == "Bomb")
-        {
-            //pick it up
-            //other.gameObject.transform.parent = this.transform;
-            //other.gameObject.transform.position = transform.position;// -transform.forward;
-            //other.transform.GetComponent<NavMeshAgent>().SetDestination(transform.position);
-            //other.transform.Translate(transform.position.x, 1, transform.position.z, Space.World); //needs rigidbody?
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -85,10 +76,6 @@ public class Reactive : MonoBehaviour
         else if (other.collider.tag == "Red" && this.tag == "Blue")
         {
             //fight
-        }
-        else if (other.collider.tag == "Wall")
-        {
-            //Debug.Log("HIT A WALL!");
         }
 
     }
@@ -100,18 +87,12 @@ public class Reactive : MonoBehaviour
         //check tag and act accordingly
         if (other.collider.tag == "Coin")
         {
-<<<<<<< HEAD
             //Debug.Log("Saw a coin!!");
             //selectedTarget = other.gameObject;
             //currentStatus = Status.PickResource;
             if (!viewableTargets.Contains(other.name))
                 viewableTargets.Add(other.name, other.gameObject);
             SetNearestTarget();
-=======
-            Debug.Log("Saw a coin!!");
-            selectedTarget = other.gameObject;
-            currentStatus = Status.PickResource;
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         }
         else if (other.collider.tag == "Blue" && this.tag == "Blue")
         {
@@ -120,14 +101,6 @@ public class Reactive : MonoBehaviour
         else if (other.collider.tag == "Red" && this.tag == "Blue")
         {
             //Debug.Log("ENEMYY!!!");
-        }
-        else if (other.collider.tag == "CaptureA")
-        {
-            //Debug.Log("Capture point A!!!");
-        }
-        else if (other.collider.tag == "CaptureB")
-        {
-            //Debug.Log("Capture point B!!!");
         }
 
     }
@@ -154,27 +127,13 @@ public class Reactive : MonoBehaviour
         {
             //Debug.Log("ENEMYY!!!");
         }
-        else if (other.collider.tag == "CaptureA")
-        {
-            //Debug.Log("Capture point A!!!");
-        }
-        else if (other.collider.tag == "CaptureB")
-        {
-            //Debug.Log("Capture point B!!!");
-        }
-<<<<<<< HEAD
 
-=======
-        else if (other.collider.tag == "Bomb")
-        {
-            //Debug.Log("Bomb!!!");
-        }
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
     }
 
 
 
-    Vector3 GetRandomDestination() {
+    Vector3 GetRandomDestination()
+    {
 
         NavMeshHit hit;
 
@@ -193,11 +152,13 @@ public class Reactive : MonoBehaviour
 
     }
 
-    bool CarriesBomb(GameObject agent) {
-        return agent.transform.childCount > 0 ? true : false;    
+    bool CarriesBomb(GameObject agent)
+    {
+        return agent.transform.childCount > 0 ? true : false;
     }
 
-    void PickBomb() {
+    void PickBomb()
+    {
 
         bomb.gameObject.transform.parent = this.gameObject.transform;
         bomb.gameObject.transform.position = this.gameObject.transform.position;
@@ -206,42 +167,45 @@ public class Reactive : MonoBehaviour
 
     }
 
-    void PlaceBomb() {
-        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().BombScore(this.tag); 
-        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().ResetBomb();        
+    void PlaceBomb()
+    {
+        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().BombScore(this.tag);
+        GameObject.Find("BombSpawner").GetComponent<BombSpawner>().ResetBomb();
     }
-    
-    void SetNearestTarget() {
+
+    //escolhe moeda mais proxima
+    void SetNearestTarget()
+    {
         var min = 99999.0f;
         GameObject nearest = null;
 
         var e = viewableTargets.GetEnumerator();
         //try
         //{
-            while (e.MoveNext())
+        while (e.MoveNext())
+        {
+            var key = e.Key as string;
+            var value = e.Value as GameObject;
+            if (GameObject.Find(key) == null)
             {
-                var key = e.Key as string;
-                var value = e.Value as GameObject;
-                if (GameObject.Find(key) == null)
-                {
-                    viewableTargets.Remove(key);
-                    break;
-                }
-                    
-                //Debug.Log(value.name);
-                var temp = (value.transform.position - transform.position).magnitude;
-                if (temp < min)
-                {
-                    min = temp;
-                    nearest = value;
-                }
-
+                viewableTargets.Remove(key);
+                break;
             }
-            //Debug.Log(nearest.gameObject);
-            if (nearest != null)
-                selectedTarget = nearest.gameObject;
-            else
-                selectedTarget = null;
+
+            //Debug.Log(value.name);
+            var temp = (value.transform.position - transform.position).magnitude;
+            if (temp < min)
+            {
+                min = temp;
+                nearest = value;
+            }
+
+        }
+        //Debug.Log(nearest.gameObject);
+        if (nearest != null)
+            selectedTarget = nearest.gameObject;
+        else
+            selectedTarget = null;
         //}
         //catch (Exception ex)
         //{
@@ -258,7 +222,6 @@ public class Reactive : MonoBehaviour
         //mantem actualizada a posicao actual
         currentPosition = transform.position;
 
-<<<<<<< HEAD
         //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh :/
         //controlar a prioridade da bomba em relacao a resources aqui?
         if (bomb.transform.parent == null)
@@ -266,121 +229,144 @@ public class Reactive : MonoBehaviour
             if ((bomb.transform.position - transform.position).magnitude <= viewDistance)
                 currentStatus = Status.PickBomb;
         }
-        else if (transform.childCount > 0) {
+        else if (bomb.transform.parent == this.transform)
+        { //means it has the bomb?
             //Debug.Log("Distance to bases: " + (redBaseLocation - this.transform.position).magnitude + " - " + (blueBaseLocation - this.transform.position).magnitude);
-            if (
-                ((redBaseLocation - this.transform.position).magnitude < 1 && this.tag == "Blue") ||
-                ((blueBaseLocation - this.transform.position).magnitude < 1 && this.tag == "Red")
-               )
-                PlaceBomb();
+            if (this.tag == "Blue")
+            {
+                if ((redBaseLocation - this.transform.position).magnitude < 1)
+                    PlaceBomb();
+            }
+            else if (this.tag == "Red")
+            {
+                if ((blueBaseLocation - this.transform.position).magnitude < 1)
+                    PlaceBomb();
+            }
         }
 
 
-=======
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
-        switch (currentStatus)
+        var capADist = (capturePointALocation - this.transform.position).magnitude;
+        var capBDist = (capturePointBLocation - this.transform.position).magnitude;
+
+        //controlar prioridades aqui?
+        if (!inCaptureRangeA && capADist < captureSight && capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() != this.tag)
         {
-            case Status.Wander:
-                {
-
-<<<<<<< HEAD
-                    if (viewableTargets.Count > 0)
-                        currentStatus = Status.PickResource;
-
-                    var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
-
-                    if (distance < 0.1f)
-                        moveToward = GetRandomDestination();
-
-                    agent.SetDestination(moveToward);
-
-=======
-                    var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
-
-                    if (distance < 0.1f)
-                        moveToward = GetRandomDestination();
-
-                    agent.SetDestination(moveToward);
-
-                    //controlar inteccaocao com a bomba aqui, devivado a probs com rigidbodies/navmesh
-                    if ((bomb.transform.position - transform.position).magnitude < 0.4)
-                    {
-                        bomb.gameObject.transform.parent = this.gameObject.transform;
-                        bomb.gameObject.transform.position = this.gameObject.transform.position;
-                        if (!bombPicked)
-                            bomb.transform.Translate(0, 1, -0.2f, Space.Self);
-
-                    }
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
-                }
-                break;
-
-            case Status.PickResource:
-                {
-<<<<<<< HEAD
-                    if (viewableTargets.Count == 0 || selectedTarget == null)
-                        currentStatus = Status.Wander;
-
-                    //such.. ugly.. code..
-                    try
-                    {
-                        agent.SetDestination(selectedTarget.transform.position);
-                    }catch(Exception e)
-                    {
-                        //Debug.Log(e.Message);
-                        SetNearestTarget();
-                    }
-                        
-                }
-
-                break;
-
-            case Status.PickBomb:
-                {
-                    if ((bomb.transform.position - transform.position).magnitude < 0.4)
-                    {
-                        PickBomb();
-                        currentStatus = Status.Wander;
-                    }
-                    agent.SetDestination(bomb.transform.position);
-
-                }
-                break;
-
-=======
-                    if (selectedTarget != null)
-                        agent.SetDestination(selectedTarget.transform.position);
-                    else currentStatus = Status.Wander;
-                }
-
-                break;
-
-            case Status.PickBomb:
-                { 
-                
-                }
-                break;
-
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
-            case Status.Fight:
-                {
-
-                }
-                break;
-
-<<<<<<< HEAD
-            case Status.CapturePoint:
-                {
-                    
-                    
-                }
-                break;
-
-=======
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
+            Debug.Log("checkA");
+            agent.SetDestination(capturePointALocation);
+            currentStatus = Status.CapturePoint;
         }
-        
+        else
+        {
+            if (inCaptureRangeA)
+            {
+                Debug.Log("leftA");
+                inCaptureRangeA = false;
+                capturePointA.transform.GetComponent<CapturePointAController>().AgentLeft(this.gameObject);
+            }
+        }
+        if (!inCaptureRangeB && capBDist < captureSight && capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() != this.tag)
+        {
+            Debug.Log("checkB");
+            agent.SetDestination(capturePointBLocation);
+            currentStatus = Status.CapturePoint;
+        }
+        else
+        {
+            if (inCaptureRangeB)
+            {
+                Debug.Log("leftB");
+                inCaptureRangeB = false;
+                capturePointB.transform.GetComponent<CapturePointBController>().AgentLeft(this.gameObject);
+            }
+
+        }
+            switch (currentStatus)
+            {
+                case Status.Wander:
+                    {
+
+                        if (viewableTargets.Count > 0)
+                            currentStatus = Status.PickResource;
+
+                        var distance = agent.remainingDistance;// (moveToward - currentPosition).magnitude;
+
+                        if (distance < 0.1f)
+                            moveToward = GetRandomDestination();
+
+                        agent.SetDestination(moveToward);
+
+                    }
+                    break;
+
+                case Status.PickResource:
+                    {
+                        if (viewableTargets.Count == 0 || selectedTarget == null)
+                            currentStatus = Status.Wander;
+
+                        //such.. ugly.. code..
+                        try
+                        {
+                            agent.SetDestination(selectedTarget.transform.position);
+                        }
+                        catch (Exception e)
+                        {
+                            //Debug.Log(e.Message);
+                            SetNearestTarget();
+                        }
+
+                    }
+
+                    break;
+
+                case Status.PickBomb:
+                    {
+                        if ((bomb.transform.position - transform.position).magnitude < 0.4)
+                        {
+                            PickBomb();
+                            currentStatus = Status.Wander;
+                        }
+                        agent.SetDestination(bomb.transform.position);
+
+                    }
+                    break;
+
+                case Status.Fight:
+                    {
+
+                    }
+                    break;
+
+                case Status.CapturePoint:
+                    {
+                        Debug.Log("derp");
+                        if (
+                            (capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() == "Red" && this.tag == "Red") ||
+                            (capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() == "Blue" && this.tag == "Blue") ||
+                            (capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() == "Red" && this.tag == "Red") ||
+                            (capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() == "Blue" && this.tag == "Blue")
+                            )
+                            currentStatus = Status.Wander;
+
+                        if (capADist < captureSight)
+                        {
+                            Debug.Log("Entered A");
+                            inCaptureRangeA = true;
+                            capturePointA.transform.GetComponent<CapturePointAController>().AgentArrived(this.gameObject);
+                        }
+                        if (capBDist < captureSight)
+                        {
+                            Debug.Log("Entered B");
+                            inCaptureRangeB = true;
+                            capturePointB.transform.GetComponent<CapturePointBController>().AgentArrived(this.gameObject);
+                        }
+
+                    }
+                    break;
+
+            }
 
 
-    }
+
+        }
+    
 }

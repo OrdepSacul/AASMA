@@ -16,10 +16,7 @@ public class BombSpawner : MonoBehaviour
     // Use this for initialization
     void Awake() //precisa de ser awake para os agentes encontrarem a bomba no inicio do jogo
     {
-<<<<<<< HEAD
         redScore = blueScore = 0;
-=======
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         initTimer = timer;
         Debug.Log(initTimer);
         SpawnBomb();
@@ -30,16 +27,21 @@ public class BombSpawner : MonoBehaviour
     void Update()
     {
 
+            //        initTimer -= Time.deltaTime; // I need timer which from a particular time goes to zero
+            //guiText.text = initTimer.ToString("F0");
+
+
         if (bombGameObject.transform.position != defaultPosition && bombGameObject.transform.parent == null)
         {
             initTimer -= Time.deltaTime; // I need timer which from a particular time goes to zero
             guiText.text = initTimer.ToString("F0");
-        } else initTimer = timer;
- 
+        }
+        else initTimer = timer;
+
         if (initTimer > 0)
         {
             guiText.text = initTimer.ToString("F0");
-        } 
+        }
         else // timer is <= 0
         {
             guiText.text = "TIME OVER\nPress X to restart"; // when it goes to the end-0,game ends (shows text: time over...) 
@@ -69,7 +71,6 @@ public class BombSpawner : MonoBehaviour
         bombGameObject.transform.parent = null;    
     }
 
-<<<<<<< HEAD
     public void BombScore(string team) {
         if (team == "Red")
             redScore++;
@@ -78,9 +79,6 @@ public class BombSpawner : MonoBehaviour
     }
 
     public void ResetBomb() {
-=======
-    void ResetBomb() {
->>>>>>> 7434bd2fa680747d765cfbd3e2e05261808a5259
         initTimer = timer;
         bombGameObject.transform.position = defaultPosition;
         bombGameObject.transform.parent = null;    
