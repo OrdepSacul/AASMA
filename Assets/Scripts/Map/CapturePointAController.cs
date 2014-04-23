@@ -49,7 +49,13 @@ public class CapturePointAController : MonoBehaviour {
         banner.GetComponent<SpriteRenderer>().sprite = emptyBanner;
     }
 
+    public float GetBluePoints()    {
+        return bluePoints;
+    }
 
+    public float GetRedPoints(){
+        return redPoints;
+    }
 
     public string WhosControlling()
     {
@@ -133,9 +139,9 @@ public class CapturePointAController : MonoBehaviour {
     void OnGUI()
     {
 
-        GUI.Button(new Rect(0, 160, 150, 100), "Bonus Score:\n Blue: " + Mathf.RoundToInt(bluePoints) + "\n Red: " + Mathf.RoundToInt(redPoints));
+        GUI.Button(new Rect(0, 160, 150, 85), "PointA\nBonus Score:\n Blue: " + Mathf.RoundToInt(bluePoints) + "\n Red: " + Mathf.RoundToInt(redPoints)+ "\nCapAlign: "+Mathf.RoundToInt(startTime));
 
-        GUI.Button(new Rect(0, 250, 150, 40), startTime.ToString());
+        //GUI.Button(new Rect(0, 230, 150, 40), startTime.ToString());
        
 
     }

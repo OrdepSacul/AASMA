@@ -11,13 +11,19 @@ public class ResourceSpawner : MonoBehaviour {
     private float randZ = 0.0f;
     private int currentResources;
     private int blueScore, redScore;
+    private float blueCapPoints, redCapPoints;
 
     private int allTimeCoins;
+    private GameObject capA, capB;
 
 
     // Use this for initialization
-    void Start()
+    void Awake()
     {
+        redCapPoints = blueCapPoints = 0;
+
+        capA = GameObject.Find("CaptureA");
+        capB = GameObject.Find("CaptureB");
 
         allTimeCoins = 0;
 
@@ -32,9 +38,14 @@ public class ResourceSpawner : MonoBehaviour {
     void Update()
     {
 
+        blueCapPoints = capA.GetComponent<CapturePointAController>().GetBluePoints() + capB.GetComponent<CapturePointBController>().GetBluePoints();
+        redCapPoints = capA.GetComponent<CapturePointAController>().GetRedPoints() + capB.GetComponent<CapturePointBController>().GetRedPoints();
+
+
         if (currentResources < MaxResources)
             SpawnResource();
-                        
+
+
     }
 
 
@@ -91,7 +102,9 @@ public class ResourceSpawner : MonoBehaviour {
     void OnGUI()
     {
 
-        GUILayout.Button("Red Score: " + redScore + " - Blue Score: " + blueScore);
+
+
+        GUILayout.Button("Red Score: " + (redScore + Mathf.RoundToInt(redCapPoints)) + " - Blue Score: " + (blueScore + Mathf.RoundToInt(blueCapPoints)));
 
     }
 }

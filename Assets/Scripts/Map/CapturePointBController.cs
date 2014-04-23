@@ -22,6 +22,9 @@ public class CapturePointBController : MonoBehaviour
     void Start()
     {
 
+        //bluePoints = GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().blueScore;
+        //redPoints = GameObject.Find("ResourceSpawner").GetComponent<ResourceSpawner>().redScore;
+
         startTime = 0;
 
         nearbyBlue = new ArrayList();
@@ -50,6 +53,16 @@ public class CapturePointBController : MonoBehaviour
         banner.GetComponent<SpriteRenderer>().sprite = emptyBanner;
     }
 
+
+    public float GetBluePoints()
+    {
+        return bluePoints;
+    }
+
+    public float GetRedPoints()
+    {
+        return redPoints;
+    }
 
 
     public string WhosControlling()
@@ -135,9 +148,9 @@ public class CapturePointBController : MonoBehaviour
     void OnGUI()
     {
 
-        GUI.Button(new Rect(0, 160, 150, 100), "Bonus Score:\n Blue: " + Mathf.RoundToInt(bluePoints) + "\n Red: " + Mathf.RoundToInt(redPoints));
+        GUI.Button(new Rect(0, 260, 150, 85), "PointB\nBonus Score:\n Blue: " + Mathf.RoundToInt(bluePoints) + "\n Red: " + Mathf.RoundToInt(redPoints) + "\nCapAlign: " + Mathf.RoundToInt(startTime));
 
-        GUI.Button(new Rect(0, 300, 150, 40), startTime.ToString());
+        //GUI.Button(new Rect(0, 300, 150, 40), startTime.ToString());
 
 
     }

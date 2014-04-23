@@ -247,9 +247,11 @@ public class Reactive : MonoBehaviour
 
         var capADist = (capturePointALocation - this.transform.position).magnitude;
         var capBDist = (capturePointBLocation - this.transform.position).magnitude;
+        var allegianceA = capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling();
+        var allegianceB = capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling();
 
         //controlar prioridades aqui?
-        if (!inCaptureRangeA && capADist < captureSight && capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() != this.tag)
+        if (capADist < captureSight && allegianceA != this.tag)
         {
             Debug.Log("checkA");
             agent.SetDestination(capturePointALocation);
@@ -257,14 +259,14 @@ public class Reactive : MonoBehaviour
         }
         else
         {
-            if (inCaptureRangeA)
+            if (inCaptureRangeA && capADist >= captureSight)
             {
                 Debug.Log("leftA");
                 inCaptureRangeA = false;
                 capturePointA.transform.GetComponent<CapturePointAController>().AgentLeft(this.gameObject);
             }
         }
-        if (!inCaptureRangeB && capBDist < captureSight && capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() != this.tag)
+        if (capBDist < captureSight && allegianceB != this.tag)
         {
             Debug.Log("checkB");
             agent.SetDestination(capturePointBLocation);
@@ -272,7 +274,7 @@ public class Reactive : MonoBehaviour
         }
         else
         {
-            if (inCaptureRangeB)
+            if (inCaptureRangeB && capBDist >= captureSight)
             {
                 Debug.Log("leftB");
                 inCaptureRangeB = false;
@@ -338,22 +340,26 @@ public class Reactive : MonoBehaviour
 
                 case Status.CapturePoint:
                     {
-                        Debug.Log("derp");
+
+                        //allegianceA = capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling();
+                        //allegianceB = capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling();
+
+                        //Debug.Log("derp");
                         if (
-                            (capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() == "Red" && this.tag == "Red") ||
-                            (capturePointA.transform.GetComponent<CapturePointAController>().WhosControlling() == "Blue" && this.tag == "Blue") ||
-                            (capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() == "Red" && this.tag == "Red") ||
-                            (capturePointB.transform.GetComponent<CapturePointBController>().WhosControlling() == "Blue" && this.tag == "Blue")
+                            (allegianceA == "Red" && this.tag == "Red") ||
+                            (allegianceA == "Blue" && this.tag == "Blue") ||
+                            (allegianceB == "Red" && this.tag == "Red") ||
+                            (allegianceB == "Blue" && this.tag == "Blue")
                             )
                             currentStatus = Status.Wander;
 
-                        if (capADist < captureSight)
+                        if (capADist < captureSight && !inCaptureRangeA)
                         {
                             Debug.Log("Entered A");
                             inCaptureRangeA = true;
                             capturePointA.transform.GetComponent<CapturePointAController>().AgentArrived(this.gameObject);
                         }
-                        if (capBDist < captureSight)
+                        if (capBDist < captureSight && !inCaptureRangeB)
                         {
                             Debug.Log("Entered B");
                             inCaptureRangeB = true;
